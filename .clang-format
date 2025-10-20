@@ -1,0 +1,43 @@
+---
+# 基于 Google 风格
+BasedOnStyle: Google
+
+# 缩进
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# 每行最大字符数
+ColumnLimit: 100
+
+# 访问修饰符缩进
+AccessModifierOffset: -2
+
+# 指针和引用对齐
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# 命名空间缩进
+NamespaceIndentation: None
+
+# 函数声明和定义
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# 大括号换行
+BreakBeforeBraces: Attach
+
+# 其他设置
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: true
+BinPackParameters: true
+
+# 包含文件排序
+SortIncludes: CaseInsensitive
+IncludeBlocks: Regroup
+
