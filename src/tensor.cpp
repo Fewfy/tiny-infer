@@ -2,8 +2,7 @@
 
 namespace inference {
 
-// 张量的实现已经在头文件中完成（内联实现）
-// 这里可以添加更多复杂的方法实现
+// Tensor implementation is already completed in header file (inline implementation)
+// More complex method implementations can be added here
 
-} // namespace inference
-
+}  // namespace inference

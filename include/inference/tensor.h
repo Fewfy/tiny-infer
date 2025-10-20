@@ -8,10 +8,10 @@
 
 namespace inference {
 
-// 数据类型枚举
+// Data type enumeration
 enum class DataType { FLOAT32, FLOAT16, INT32, INT8, UINT8 };
 
-// 获取数据类型的字节大小
+// Get byte size of data type
 inline size_t getDataTypeSize(DataType dtype) {
     switch (dtype) {
         case DataType::FLOAT32:
@@ -29,7 +29,7 @@ inline size_t getDataTypeSize(DataType dtype) {
     }
 }
 
-// 张量类
+// Tensor class
 class Tensor {
   public:
     Tensor() : data_(nullptr), dtype_(DataType::FLOAT32) {}
@@ -41,7 +41,7 @@ class Tensor {
 
     ~Tensor() { deallocate(); }
 
-    // 拷贝构造
+    // Copy constructor
 
     Tensor(const Tensor& other) : shape_(other.shape_), dtype_(other.dtype_) {
         allocate();
@@ -56,13 +56,13 @@ class Tensor {
     }
         */
 
-    // 移动构造
+    // Move constructor
     Tensor(Tensor&& other) noexcept
         : data_(other.data_), shape_(other.shape_), dtype_(other.dtype_) {
         other.data_ = nullptr;
     }
 
-    // 赋值运算符
+    // Assignment operator
     Tensor& operator=(const Tensor& other) {
         if (this != &other) {
             deallocate();
@@ -74,13 +74,13 @@ class Tensor {
         return *this;
     }
 
-    // 获取形状
+    // Get shape
     const std::vector<int64_t>& shape() const { return shape_; }
 
-    // 获取维度数
+    // Get number of dimensions
     size_t ndim() const { return shape_.size(); }
 
-    // 获取总元素数
+    // Get total number of elements
     int64_t numel() const {
         int64_t size = 1;
         for (auto dim : shape_) {
@@ -89,17 +89,17 @@ class Tensor {
         return size;
     }
 
-    // 获取总字节数
+    // Get total size in bytes
     size_t totalSize() const { return numel() * getDataTypeSize(dtype_); }
 
-    // 获取数据类型
+    // Get data type
     DataType dtype() const { return dtype_; }
 
-    // 获取数据指针
+    // Get data pointer
     void* data() { return data_; }
     const void* data() const { return data_; }
 
-    // 类型化访问
+    // Typed data access
     template <typename T>
     T* data_ptr() {
         return static_cast<T*>(data_);
@@ -110,7 +110,7 @@ class Tensor {
         return static_cast<const T*>(data_);
     }
 
-    // 重塑张量
+    // Reshape tensor
     void reshape(const std::vector<int64_t>& new_shape) {
         int64_t new_numel = 1;
         for (auto dim : new_shape) {
@@ -122,7 +122,7 @@ class Tensor {
         shape_ = new_shape;
     }
 
-    // 填充数据
+    // Fill data with value
     template <typename T>
     void fill(T value) {
         T* ptr = data_ptr<T>();
@@ -131,7 +131,7 @@ class Tensor {
         }
     }
 
-    // 从数据复制
+    // Copy data from source
     template <typename T>
     void copyFrom(const T* src) {
         std::memcpy(data_, src, totalSize());

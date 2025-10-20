@@ -1,37 +1,36 @@
 #pragma once
 
-#include "tensor.h"
-#include <vector>
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
 #include <variant>
+#include <vector>
+
+#include "tensor.h"
 
 namespace inference {
 
-// 算子参数类型
+// Operator attribute types
 using Attribute = std::variant<int, float, std::string, std::vector<int>>;
 using AttributeMap = std::map<std::string, Attribute>;
 
-// 算子基类
+// Operator base class
 class Operator {
-public:
+  public:
     Operator(const std::string& name) : name_(name) {}
     virtual ~Operator() = default;
-    
-    // 前向推理
+
+    // Forward inference
     virtual std::vector<Tensor> forward(const std::vector<Tensor>& inputs) = 0;
-    
-    // 获取算子名称
+
+    // Get operator name
     const std::string& name() const { return name_; }
-    
-    // 设置属性
-    void setAttribute(const std::string& key, const Attribute& value) {
-        attributes_[key] = value;
-    }
-    
-    // 获取属性
-    template<typename T>
+
+    // Set attribute
+    void setAttribute(const std::string& key, const Attribute& value) { attributes_[key] = value; }
+
+    // Get attribute
+    template <typename T>
     T getAttribute(const std::string& key, const T& default_value) const {
         auto it = attributes_.find(key);
         if (it != attributes_.end()) {
@@ -39,67 +38,66 @@ public:
         }
         return default_value;
     }
-    
-protected:
+
+  protected:
     std::string name_;
     AttributeMap attributes_;
 };
 
-// 卷积算子
+// Convolution operator
 class Conv2dOperator : public Operator {
-public:
+  public:
     Conv2dOperator() : Operator("Conv2d") {}
-    
+
     std::vector<Tensor> forward(const std::vector<Tensor>& inputs) override;
 };
 
-// 池化算子
+// Max pooling operator
 class MaxPool2dOperator : public Operator {
-public:
+  public:
     MaxPool2dOperator() : Operator("MaxPool2d") {}
-    
+
     std::vector<Tensor> forward(const std::vector<Tensor>& inputs) override;
 };
 
-// 全连接算子
+// Fully connected operator
 class LinearOperator : public Operator {
-public:
+  public:
     LinearOperator() : Operator("Linear") {}
-    
+
     std::vector<Tensor> forward(const std::vector<Tensor>& inputs) override;
 };
 
-// ReLU激活
+// ReLU activation
 class ReluOperator : public Operator {
-public:
+  public:
     ReluOperator() : Operator("ReLU") {}
-    
+
     std::vector<Tensor> forward(const std::vector<Tensor>& inputs) override;
 };
 
 // Softmax
 class SoftmaxOperator : public Operator {
-public:
+  public:
     SoftmaxOperator() : Operator("Softmax") {}
-    
+
     std::vector<Tensor> forward(const std::vector<Tensor>& inputs) override;
 };
 
-// 矩阵乘法
+// Matrix multiplication
 class MatMulOperator : public Operator {
-public:
+  public:
     MatMulOperator() : Operator("MatMul") {}
-    
+
     std::vector<Tensor> forward(const std::vector<Tensor>& inputs) override;
 };
 
-// 加法
+// Addition operator
 class AddOperator : public Operator {
-public:
+  public:
     AddOperator() : Operator("Add") {}
-    
+
     std::vector<Tensor> forward(const std::vector<Tensor>& inputs) override;
 };
 
-} // namespace inference
-
+}  // namespace inference

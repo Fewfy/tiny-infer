@@ -1,30 +1,30 @@
 #pragma once
 
-#include "tensor.h"
-#include "operator.h"
-#include <vector>
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
+#include <vector>
+
+#include "operator.h"
+#include "tensor.h"
 
 namespace inference {
 
-// 计算图节点
+// Computation graph node
 struct GraphNode {
     std::shared_ptr<Operator> op;
-    std::vector<int> input_indices;  // 输入张量索引
-    std::vector<int> output_indices; // 输出张量索引
+    std::vector<int> input_indices;   // Input tensor indices
+    std::vector<int> output_indices;  // Output tensor indices
 };
 
-// 模型类
+// Model class
 class Model {
-public:
+  public:
     Model() = default;
     ~Model() = default;
-    
-    // 添加算子
-    void addOperator(std::shared_ptr<Operator> op, 
-                     const std::vector<int>& inputs,
+
+    // Add operator
+    void addOperator(std::shared_ptr<Operator> op, const std::vector<int>& inputs,
                      const std::vector<int>& outputs) {
         GraphNode node;
         node.op = op;
@@ -32,13 +32,11 @@ public:
         node.output_indices = outputs;
         graph_.push_back(node);
     }
-    
-    // 设置输入张量
-    void setInput(const std::string& name, const Tensor& tensor) {
-        inputs_[name] = tensor;
-    }
-    
-    // 获取输出张量
+
+    // Set input tensor
+    void setInput(const std::string& name, const Tensor& tensor) { inputs_[name] = tensor; }
+
+    // Get output tensor
     Tensor getOutput(const std::string& name) const {
         auto it = outputs_.find(name);
         if (it != outputs_.end()) {
@@ -46,25 +44,24 @@ public:
         }
         throw std::runtime_error("Output not found: " + name);
     }
-    
-    // 执行推理
+
+    // Execute inference
     void forward();
-    
-    // 加载模型
+
+    // Load model
     bool load(const std::string& path);
-    
-    // 保存模型
+
+    // Save model
     bool save(const std::string& path) const;
-    
-    // 打印模型结构
+
+    // Print model structure
     void print() const;
-    
-private:
+
+  private:
     std::vector<GraphNode> graph_;
     std::map<std::string, Tensor> inputs_;
     std::map<std::string, Tensor> outputs_;
     std::vector<Tensor> intermediate_tensors_;
 };
 
-} // namespace inference
-
+}  // namespace inference

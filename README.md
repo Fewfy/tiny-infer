@@ -1,54 +1,54 @@
 # Inference Framework
 
-一个轻量级、高性能的C++深度学习推理框架，支持多种神经网络算子和模型格式。
+A lightweight, high-performance C++ deep learning inference framework supporting various neural network operators and model formats.
 
-## 特性
+## Features
 
-- 轻量级设计，易于集成
-- 支持多种数据类型（FP32、FP16、INT8等）
-- 模块化算子系统，易于扩展
-- 多线程支持
-- 内置性能分析工具
-- 跨平台支持（Linux、Windows、macOS）
+- Lightweight design, easy to integrate
+- Support for multiple data types (FP32, FP16, INT8, etc.)
+- Modular operator system, easy to extend
+- Multi-threading support
+- Built-in performance profiling tools
+- Cross-platform support (Linux, Windows, macOS)
 
-## 项目结构
+## Project Structure
 
 ```
 inference-framework/
-├── include/inference/      # 公共头文件
-│   ├── tensor.h           # 张量类
-│   ├── operator.h         # 算子基类和内置算子
-│   ├── model.h            # 模型类和计算图
-│   ├── engine.h           # 推理引擎
-│   └── inference.h        # 主头文件
-├── src/                   # 源代码实现
+├── include/inference/      # Public header files
+│   ├── tensor.h           # Tensor class
+│   ├── operator.h         # Operator base class and built-in operators
+│   ├── model.h            # Model class and computation graph
+│   ├── engine.h           # Inference engine
+│   └── inference.h        # Main header file
+├── src/                   # Source code implementation
 │   ├── tensor.cpp
 │   ├── operator.cpp
 │   ├── model.cpp
 │   ├── engine.cpp
 │   └── inference.cpp
-├── examples/              # 示例代码
+├── examples/              # Example code
 │   ├── simple_inference.cpp
 │   ├── model_loading.cpp
 │   ├── benchmark.cpp
 │   └── custom_operator.cpp
-├── tests/                 # 单元测试
+├── tests/                 # Unit tests
 │   ├── test_tensor.cpp
 │   └── test_operators.cpp
-├── models/                # 模型文件目录
-└── CMakeLists.txt         # CMake构建配置
+├── models/                # Model files directory
+└── CMakeLists.txt         # CMake build configuration
 ```
 
-## 依赖要求
+## Requirements
 
-- C++17或更高版本
+- C++17 or higher
 - CMake 3.15+
-- 支持的编译器：
+- Supported compilers:
   - GCC 7+
   - Clang 5+
   - MSVC 2017+
 
-## 构建
+## Build
 
 ### Linux/macOS
 
@@ -68,50 +68,50 @@ cmake ..
 cmake --build . --config Release
 ```
 
-### CMake选项
+### CMake Options
 
-- `BUILD_EXAMPLES`: 构建示例程序（默认：ON）
-- `BUILD_TESTS`: 构建测试程序（默认：ON）
-- `ENABLE_PROFILING`: 启用性能分析（默认：OFF）
+- `BUILD_EXAMPLES`: Build example programs (default: ON)
+- `BUILD_TESTS`: Build test programs (default: ON)
+- `ENABLE_PROFILING`: Enable profiling (default: OFF)
 
-示例：
+Example:
 ```bash
 cmake -DBUILD_EXAMPLES=ON -DENABLE_PROFILING=ON ..
 ```
 
-## 快速开始
+## Quick Start
 
-### 基本推理
+### Basic Inference
 
 ```cpp
 #include "inference/inference.h"
 
 int main() {
-    // 初始化框架
+    // Initialize framework
     inference::initialize();
     
-    // 创建输入张量
+    // Create input tensor
     std::vector<int64_t> shape = {1, 3, 224, 224};
     inference::Tensor input(shape, inference::DataType::FLOAT32);
     
-    // 创建推理引擎
+    // Create inference engine
     inference::EngineConfig config;
     config.num_threads = 4;
     inference::InferenceEngine engine(config);
     
-    // 加载模型
+    // Load model
     engine.loadModel("model.bin");
     
-    // 执行推理
+    // Execute inference
     auto outputs = engine.infer({input});
     
-    // 清理
+    // Cleanup
     inference::finalize();
     return 0;
 }
 ```
 
-### 自定义算子
+### Custom Operator
 
 ```cpp
 class MyCustomOperator : public inference::Operator {
@@ -120,70 +120,70 @@ public:
     
     std::vector<inference::Tensor> forward(
         const std::vector<inference::Tensor>& inputs) override {
-        // 实现你的算子逻辑
+        // Implement your operator logic
         // ...
         return outputs;
     }
 };
 ```
 
-## 支持的算子
+## Supported Operators
 
-当前支持以下算子（TODO表示需要实现）：
+Currently supported operators (TODO indicates pending implementation):
 
-- ✓ Tensor（张量基础操作）
-- TODO Conv2d（二维卷积）
-- TODO MaxPool2d（最大池化）
-- TODO Linear（全连接层）
-- TODO ReLU（激活函数）
-- TODO Softmax（归一化）
-- TODO MatMul（矩阵乘法）
-- TODO Add（加法）
+- ✓ Tensor (basic tensor operations)
+- TODO Conv2d (2D convolution)
+- TODO MaxPool2d (max pooling)
+- TODO Linear (fully connected layer)
+- TODO ReLU (activation function)
+- TODO Softmax (normalization)
+- TODO MatMul (matrix multiplication)
+- TODO Add (addition)
 
-更多算子正在开发中...
+More operators are under development...
 
-## API文档
+## API Documentation
 
-### Tensor（张量）
+### Tensor
 
-张量是框架的基本数据结构。
+Tensor is the fundamental data structure of the framework.
 
 ```cpp
-// 创建张量
+// Create tensor
 Tensor tensor({2, 3, 4}, DataType::FLOAT32);
 
-// 获取属性
+// Get properties
 int64_t num_elements = tensor.numel();
 size_t dimensions = tensor.ndim();
 const auto& shape = tensor.shape();
 
-// 数据操作
+// Data operations
 tensor.fill(0.0f);
 tensor.reshape({4, 6});
 float* data = tensor.data_ptr<float>();
 ```
 
-### Model（模型）
+### Model
 
-模型类管理计算图和推理流程。
+Model class manages computation graph and inference workflow.
 
 ```cpp
 Model model;
 
-// 添加算子到计算图
+// Add operator to computation graph
 model.addOperator(op, input_indices, output_indices);
 
-// 加载/保存模型
+// Load/save model
 model.load("model.bin");
 model.save("model.bin");
 
-// 执行推理
+// Execute inference
 model.forward();
 ```
 
-### InferenceEngine（推理引擎）
+### InferenceEngine
 
-推理引擎提供高级推理接口。
+Inference engine provides high-level inference interface.
 
 ```cpp
 EngineConfig config;
@@ -195,67 +195,67 @@ engine.loadModel("model.bin");
 auto outputs = engine.infer(inputs);
 ```
 
-## 性能优化
+## Performance Optimization
 
-### 多线程
+### Multi-threading
 
 ```cpp
 EngineConfig config;
 config.num_threads = std::thread::hardware_concurrency();
 ```
 
-### FP16推理
+### FP16 Inference
 
 ```cpp
 EngineConfig config;
-config.use_fp16 = true;  // 使用半精度浮点
+config.use_fp16 = true;  // Use half-precision floating point
 ```
 
-### 预热
+### Warmup
 
 ```cpp
-engine.warmup(10);  // 预热10次迭代
+engine.warmup(10);  // Warmup for 10 iterations
 ```
 
-## 示例程序
+## Example Programs
 
-项目包含多个示例程序：
+The project includes multiple example programs:
 
-1. `simple_inference` - 基本推理示例
-2. `model_loading` - 模型加载和结构打印
-3. `benchmark` - 性能基准测试
-4. `custom_operator` - 自定义算子示例
+1. `simple_inference` - Basic inference example
+2. `model_loading` - Model loading and structure printing
+3. `benchmark` - Performance benchmark
+4. `custom_operator` - Custom operator example
 
-运行示例：
+Run examples:
 ```bash
 ./build/examples/simple_inference
 ./build/examples/benchmark
 ```
 
-## 测试
+## Testing
 
-运行测试：
+Run tests:
 ```bash
 cd build
 ctest --verbose
-# 或者
+# or
 ./tests/test_tensor
 ./tests/test_operators
 ```
 
-## 开发指南
+## Development Guide
 
-### 开发环境设置
+### Development Environment Setup
 
-#### 生成 compile_commands.json（用于IDE代码补全和分析）
+#### Generate compile_commands.json (for IDE code completion and analysis)
 
-项目提供了一个脚本来生成 `compile_commands.json` 文件，该文件被 clangd、VSCode 等工具用于代码补全和智能分析：
+The project provides a script to generate the `compile_commands.json` file, which is used by tools like clangd and VSCode for code completion and intelligent analysis:
 
 ```bash
 ./generate_compile_commands.sh
 ```
 
-或者手动生成：
+Or generate manually:
 
 ```bash
 mkdir -p build
@@ -264,47 +264,47 @@ cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 ln -sf build/compile_commands.json ../compile_commands.json
 ```
 
-**注意**：`compile_commands.json` 包含本地路径信息，已添加到 `.gitignore`，不会提交到仓库。每个开发者需要在自己的环境中生成此文件。
+**Note**: `compile_commands.json` contains local path information and has been added to `.gitignore`, so it won't be committed to the repository. Each developer needs to generate this file in their own environment.
 
-#### VSCode 配置
+#### VSCode Configuration
 
-项目包含推荐的 VSCode 配置（`.vscode/` 目录），包括：
-- C++ 代码补全和智能提示（使用 clangd）
-- 代码格式化设置
-- 推荐的扩展插件
+The project includes recommended VSCode configuration (`.vscode/` directory), including:
+- C++ code completion and intelligent hints (using clangd)
+- Code formatting settings
+- Recommended extensions
 
-### 添加新算子
+### Adding New Operators
 
-1. 在 `operator.h` 中声明算子类
-2. 在 `operator.cpp` 中实现 `forward()` 方法
-3. 添加相应的单元测试
+1. Declare operator class in `operator.h`
+2. Implement `forward()` method in `operator.cpp`
+3. Add corresponding unit tests
 
-### 代码风格
+### Code Style
 
-- 使用4个空格缩进
-- 类名使用大驼峰命名
-- 函数和变量使用小驼峰命名
-- 私有成员变量以下划线结尾
+- Use 4 spaces for indentation
+- Class names use PascalCase
+- Functions and variables use camelCase
+- Private member variables end with underscore
 
-## 待办事项
+## TODO List
 
-- [ ] 实现所有基础算子
-- [ ] 添加ONNX模型格式支持
-- [ ] GPU加速支持（CUDA）
-- [ ] 量化支持（INT8）
-- [ ] 算子融合优化
-- [ ] 更完整的文档和教程
-- [ ] 更多示例程序
+- [ ] Implement all basic operators
+- [ ] Add ONNX model format support
+- [ ] GPU acceleration support (CUDA)
+- [ ] Quantization support (INT8)
+- [ ] Operator fusion optimization
+- [ ] More complete documentation and tutorials
+- [ ] More example programs
 
-## 许可证
+## License
 
 MIT License
 
-## 贡献
+## Contributing
 
-欢迎提交Issue和Pull Request！
+Issues and Pull Requests are welcome!
 
-## 联系方式
+## Contact
 
-如有问题或建议，请通过Issue联系。
+For questions or suggestions, please contact via Issues.
 

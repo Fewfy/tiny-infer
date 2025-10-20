@@ -1,25 +1,24 @@
 #pragma once
 
-// 主头文件，包含所有公共API
+// Main header file containing all public APIs
 
-#include "tensor.h"
-#include "operator.h"
-#include "model.h"
 #include "engine.h"
+#include "model.h"
+#include "operator.h"
+#include "tensor.h"
 
 namespace inference {
 
-// 版本信息
+// Version information
 constexpr const char* VERSION = "1.0.0";
 
-// 初始化推理框架
+// Initialize inference framework
 void initialize();
 
-// 清理资源
+// Cleanup resources
 void finalize();
 
-// 获取版本信息
+// Get version information
 const char* getVersion();
 
-} // namespace inference
-
+}  // namespace inference

@@ -1,165 +1,164 @@
-# 架构设计
+# Architecture Design
 
-## 概述
+## Overview
 
-本推理框架采用模块化设计，主要包含以下核心组件：
+This inference framework adopts a modular design with the following core components:
 
-## 核心组件
+## Core Components
 
-### 1. Tensor（张量）
+### 1. Tensor
 
-张量是框架的基础数据结构，用于存储和操作多维数组。
+Tensor is the fundamental data structure of the framework, used for storing and manipulating multi-dimensional arrays.
 
-**主要特性：**
-- 支持多种数据类型（FLOAT32、FLOAT16、INT32、INT8等）
-- 动态形状管理
-- 内存自动管理
-- 类型安全的数据访问
+**Key Features:**
+- Support for multiple data types (FLOAT32, FLOAT16, INT32, INT8, etc.)
+- Dynamic shape management
+- Automatic memory management
+- Type-safe data access
 
-**关键方法：**
-- `shape()` - 获取张量形状
-- `numel()` - 获取元素总数
-- `reshape()` - 重塑张量
-- `data_ptr<T>()` - 类型化数据访问
+**Key Methods:**
+- `shape()` - Get tensor shape
+- `numel()` - Get total number of elements
+- `reshape()` - Reshape tensor
+- `data_ptr<T>()` - Typed data access
 
-### 2. Operator（算子）
+### 2. Operator
 
-算子是计算的基本单元，每个算子实现特定的数学运算。
+Operators are the basic computation units, each implementing specific mathematical operations.
 
-**算子基类：**
+**Operator Base Class:**
 ```cpp
 class Operator {
     virtual std::vector<Tensor> forward(const std::vector<Tensor>& inputs) = 0;
 };
 ```
 
-**内置算子：**
-- Conv2d - 二维卷积
-- MaxPool2d - 最大池化
-- Linear - 全连接层
-- ReLU - 激活函数
-- Softmax - 归一化
-- MatMul - 矩阵乘法
-- Add - 元素级加法
+**Built-in Operators:**
+- Conv2d - 2D convolution
+- MaxPool2d - Max pooling
+- Linear - Fully connected layer
+- ReLU - Activation function
+- Softmax - Normalization
+- MatMul - Matrix multiplication
+- Add - Element-wise addition
 
-**扩展机制：**
-用户可以继承`Operator`基类实现自定义算子。
+**Extension Mechanism:**
+Users can inherit from the `Operator` base class to implement custom operators.
 
-### 3. Model（模型）
+### 3. Model
 
-模型管理计算图和推理流程。
+Model manages the computation graph and inference workflow.
 
-**计算图：**
-- 由多个算子节点组成的有向无环图（DAG）
-- 节点之间通过张量索引连接
-- 支持多输入多输出
+**Computation Graph:**
+- Directed Acyclic Graph (DAG) composed of multiple operator nodes
+- Nodes connected through tensor indices
+- Support for multiple inputs and outputs
 
-**主要功能：**
-- 添加算子到计算图
-- 模型序列化和反序列化
-- 前向推理执行
+**Main Functions:**
+- Add operators to computation graph
+- Model serialization and deserialization
+- Forward inference execution
 
-### 4. InferenceEngine（推理引擎）
+### 4. InferenceEngine
 
-推理引擎是高级接口，提供完整的推理功能。
+The inference engine provides a high-level interface with complete inference functionality.
 
-**配置选项：**
-- 线程数
-- FP16支持
-- 性能分析
-- 工作空间大小
+**Configuration Options:**
+- Number of threads
+- FP16 support
+- Profiling
+- Workspace size
 
-**功能：**
-- 模型加载和优化
-- 同步/异步推理
-- 性能分析和统计
-- 预热机制
+**Features:**
+- Model loading and optimization
+- Synchronous/asynchronous inference
+- Performance profiling and statistics
+- Warmup mechanism
 
-## 数据流
+## Data Flow
 
 ```
-输入数据 -> Tensor
+Input Data -> Tensor
     |
     v
 Model.forward()
     |
     v
-执行计算图
+Execute Computation Graph
     |
     +-> Operator1.forward()
     |       |
     |       v
-    |   中间Tensor
+    |   Intermediate Tensor
     |       |
     +-> Operator2.forward()
     |       |
     ...
     |
     v
-输出Tensor
+Output Tensor
 ```
 
-## 内存管理
+## Memory Management
 
-### 张量内存
-- 使用RAII管理内存生命周期
-- 支持移动语义减少拷贝
-- 延迟分配策略
+### Tensor Memory
+- Use RAII to manage memory lifecycle
+- Support move semantics to reduce copying
+- Lazy allocation strategy
 
-### 工作空间
-- 引擎维护统一的工作空间
-- 算子可以申请临时内存
-- 推理结束后自动释放
+### Workspace
+- Engine maintains unified workspace
+- Operators can request temporary memory
+- Automatic release after inference
 
-## 线程模型
+## Threading Model
 
-### 算子级并行
-- 单个算子内部可以多线程执行
-- 使用线程池管理工作线程
-- 负载均衡
+### Operator-level Parallelism
+- Single operator can execute with multiple threads
+- Thread pool manages worker threads
+- Load balancing
 
-### 批处理并行
-- 支持批量输入并行处理
-- 数据并行策略
+### Batch Parallelism
+- Support parallel processing of batched inputs
+- Data parallelism strategy
 
-## 优化策略
+## Optimization Strategies
 
-### 编译时优化
-1. **算子融合**
+### Compile-time Optimization
+1. **Operator Fusion**
    - Conv + ReLU -> ConvReLU
    - BatchNorm + Scale -> BNScale
 
-2. **常量折叠**
-   - 预计算常量表达式
-   - 减少运行时计算
+2. **Constant Folding**
+   - Pre-compute constant expressions
+   - Reduce runtime computation
 
-### 运行时优化
-1. **内存复用**
-   - 中间张量内存池
-   - 减少分配/释放开销
+### Runtime Optimization
+1. **Memory Reuse**
+   - Intermediate tensor memory pool
+   - Reduce allocation/deallocation overhead
 
-2. **指令优化**
-   - SIMD向量化
-   - CPU亲和性设置
+2. **Instruction Optimization**
+   - SIMD vectorization
+   - CPU affinity settings
 
-## 扩展性
+## Extensibility
 
-### 添加新算子
-1. 继承`Operator`基类
-2. 实现`forward()`方法
-3. 注册到算子工厂
+### Adding New Operators
+1. Inherit from `Operator` base class
+2. Implement `forward()` method
+3. Register with operator factory
 
-### 支持新硬件
-1. 实现硬件抽象层
-2. 提供设备特定的算子实现
-3. 注册设备后端
+### Supporting New Hardware
+1. Implement hardware abstraction layer
+2. Provide device-specific operator implementations
+3. Register device backend
 
-## 未来规划
+## Future Plans
 
-- GPU支持（CUDA/OpenCL）
-- 模型量化（INT8/INT4）
-- 动态形状支持
-- 子图分割和异构执行
-- 更多算子实现
-- ONNX格式支持
-
+- GPU support (CUDA/OpenCL)
+- Model quantization (INT8/INT4)
+- Dynamic shape support
+- Subgraph partitioning and heterogeneous execution
+- More operator implementations
+- ONNX format support

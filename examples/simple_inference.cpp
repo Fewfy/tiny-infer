@@ -1,35 +1,36 @@
-#include "inference/inference.h"
 #include <iostream>
 #include <vector>
+
+#include "inference/inference.h"
 
 int main() {
     std::cout << "Simple Inference Example" << std::endl;
     std::cout << "========================" << std::endl;
-    
-    // 初始化框架
+
+    // Initialize framework
     inference::initialize();
-    
-    // 创建输入张量
-    std::vector<int64_t> input_shape = {1, 3, 224, 224}; // NCHW格式
+
+    // Create input tensor
+    std::vector<int64_t> input_shape = {1, 3, 224, 224};  // NCHW format
     inference::Tensor input(input_shape, inference::DataType::FLOAT32);
-    
-    // TODO: 填充输入数据
+
+    // TODO: Fill input data
     // input.fill(0.5f);
-    
-    // 创建推理引擎
+
+    // Create inference engine
     inference::EngineConfig config;
     config.num_threads = 4;
     config.enable_profiling = true;
-    
+
     inference::InferenceEngine engine(config);
-    
-    // TODO: 加载模型
+
+    // TODO: Load model
     // engine.loadModel("path/to/model.bin");
-    
-    // TODO: 执行推理
+
+    // TODO: Execute inference
     // std::vector<inference::Tensor> outputs = engine.infer({input});
-    
-    // TODO: 处理输出
+
+    // TODO: Process outputs
     // for (size_t i = 0; i < outputs.size(); ++i) {
     //     std::cout << "Output " << i << " shape: ";
     //     for (auto dim : outputs[i].shape()) {
@@ -37,14 +38,13 @@ int main() {
     //     }
     //     std::cout << std::endl;
     // }
-    
-    // 获取性能统计
+
+    // Get profiling statistics
     auto profiling_info = engine.getProfilingInfo();
     std::cout << "Total inference time: " << profiling_info.total_time_ms << " ms" << std::endl;
-    
-    // 清理
+
+    // Cleanup
     inference::finalize();
-    
+
     return 0;
 }
-
