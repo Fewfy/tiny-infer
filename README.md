@@ -245,6 +245,34 @@ ctest --verbose
 
 ## 开发指南
 
+### 开发环境设置
+
+#### 生成 compile_commands.json（用于IDE代码补全和分析）
+
+项目提供了一个脚本来生成 `compile_commands.json` 文件，该文件被 clangd、VSCode 等工具用于代码补全和智能分析：
+
+```bash
+./generate_compile_commands.sh
+```
+
+或者手动生成：
+
+```bash
+mkdir -p build
+cd build
+cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+ln -sf build/compile_commands.json ../compile_commands.json
+```
+
+**注意**：`compile_commands.json` 包含本地路径信息，已添加到 `.gitignore`，不会提交到仓库。每个开发者需要在自己的环境中生成此文件。
+
+#### VSCode 配置
+
+项目包含推荐的 VSCode 配置（`.vscode/` 目录），包括：
+- C++ 代码补全和智能提示（使用 clangd）
+- 代码格式化设置
+- 推荐的扩展插件
+
 ### 添加新算子
 
 1. 在 `operator.h` 中声明算子类

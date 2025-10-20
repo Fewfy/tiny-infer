@@ -1,29 +1,36 @@
 CompileFlags:
-  # 编译数据库路径
-  CompilationDatabase: build/
+  Add:
+    - "-std=c++17"
+    - "-Wall"
+    - "-Wextra"
+  Remove:
+    - "-march=*"
+    - "-mtune=*"
 
-# 诊断配置
 Diagnostics:
-  ClangTidy:
-    Add: [
-      performance-*,
-      modernize-*,
-      readability-*
-    ]
-    Remove: [
-      modernize-use-trailing-return-type
-    ]
   UnusedIncludes: Strict
+  MissingIncludes: Strict
+  ClangTidy:
+    Add:
+      - modernize-*
+      - performance-*
+      - readability-*
+      - bugprone-*
+    Remove:
+      - modernize-use-trailing-return-type
+      - readability-magic-numbers
+      - readability-identifier-length
 
-# 索引配置
 Index:
   Background: Build
 
-# 补全配置
 Completion:
   AllScopes: Yes
 
-# 悬停提示
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+
 Hover:
   ShowAKA: Yes
-
