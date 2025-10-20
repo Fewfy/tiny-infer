@@ -1,7 +1,7 @@
 {
-    // 启用保存时自动格式化
+    // Enable format on save
     "editor.formatOnSave": true,
-    // C++ 格式化设置 - 使用 clangd
+    // C++ formatting settings - using clangd
     "[cpp]": {
         "editor.defaultFormatter": "xaver.clang-format",
         "editor.formatOnSave": true
@@ -10,9 +10,9 @@
         "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
         "editor.formatOnSave": true
     },
-    // 禁用 C/C++ 扩展的 IntelliSense，避免与 clangd 冲突
+    // Disable C/C++ extension IntelliSense to avoid conflicts with clangd
     "C_Cpp.intelliSenseEngine": "disabled",
-    // clangd 配置
+    // clangd configuration
     "clangd.arguments": [
         "--background-index",
         "--clang-tidy",
@@ -26,10 +26,10 @@
     "clangd.fallbackFlags": [
         "-std=c++17"
     ],
-    "clangd.path": "clangd",
-    // 启用语义高亮
+    "clangd.path": "/usr/bin/clangd",
+    // Enable semantic highlighting
     "editor.semanticHighlighting.enabled": true,
-    // IntelliSense 设置
+    // IntelliSense settings
     "editor.suggest.insertMode": "replace",
     "editor.suggest.snippetsPreventQuickSuggestions": false,
     "editor.quickSuggestions": {
@@ -39,15 +39,15 @@
     },
     "editor.parameterHints.enabled": true,
     "editor.inlineSuggest.enabled": true,
-    // CMake 文件格式化
+    // CMake file formatting
     "[cmake]": {
         "editor.formatOnSave": true
     },
-    // Markdown 文件格式化
+    // Markdown file formatting
     "[markdown]": {
         "editor.formatOnSave": true
     },
-    // JSON 文件格式化
+    // JSON file formatting
     "[json]": {
         "editor.formatOnSave": true
     }
