@@ -1,4 +1,4 @@
-# 编译产物
+# build files
 build/
 *.o
 *.a
@@ -27,17 +27,18 @@ compile_commands.json
 *.swo
 *~
 
-# 模型文件
+# model files
 *.bin
 *.onnx
 *.pb
 models/*.bin
 
-# 临时文件
+# tmp files 
 *.log
 *.tmp
+/.cache/**/*
 
-# 操作系统
+# OS
 .DS_Store
 Thumbs.db
 
