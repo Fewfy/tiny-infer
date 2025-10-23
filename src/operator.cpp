@@ -1,7 +1,11 @@
 #include "inference/operator.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
+#include <cstdint>
+
+#include "inference/tensor.h"
 
 namespace inference {
 
@@ -94,9 +98,63 @@ std::vector<Tensor> AddOperator::forward(const std::vector<Tensor>& inputs) {
     // TODO: Implement element-wise addition (with broadcasting support)
     // inputs[0]: First input tensor
     // inputs[1]: Second input tensor
+    assert(inputs.size() == 2);
+    assert(inputs[0].shape() == inputs[1].shape());
+    assert(inputs[0].dtype() == inputs[1].dtype());
+    assert(inputs[0].ndim() == inputs[1].ndim());
+
+    Tensor first = inputs[0];
+    Tensor second = inputs[1];
 
     std::vector<Tensor> outputs;
-    // TODO: Create output tensor and perform addition
+    Tensor output(first.shape(), first.dtype());
+
+    auto add_func = []<typename T>(const T* first_data, const T* second_data, T* output_data,
+                                   int64_t numel) {
+        for (int64_t i = 0; i < numel; ++i) {
+            output_data[i] = first_data[i] + second_data[i];
+        }
+    };
+    switch (first.dtype()) {
+        case DataType::FLOAT32: {
+            const float* first_data = first.data_ptr<float>();
+            const float* second_data = second.data_ptr<float>();
+            auto* output_data = output.data_ptr<float>();
+            add_func(first_data, second_data, output_data, first.numel());
+            break;
+        }
+        case DataType::FLOAT16: {
+            const uint16_t* first_data = first.data_ptr<uint16_t>();
+            const uint16_t* second_data = second.data_ptr<uint16_t>();
+            auto* output_data = output.data_ptr<uint16_t>();
+            add_func(first_data, second_data, output_data, first.numel());
+        } break;
+        case DataType::INT32: {
+            const int32_t* first_data = first.data_ptr<int32_t>();
+            const int32_t* second_data = second.data_ptr<int32_t>();
+            auto* output_data = output.data_ptr<int32_t>();
+            add_func(first_data, second_data, output_data, first.numel());
+            break;
+        }
+        case DataType::INT8: {
+            const int8_t* first_data = first.data_ptr<int8_t>();
+            const int8_t* second_data = second.data_ptr<int8_t>();
+            auto* output_data = output.data_ptr<int8_t>();
+            add_func(first_data, second_data, output_data, first.numel());
+            break;
+        }
+        case DataType::UINT8: {
+            const uint8_t* first_data = first.data_ptr<uint8_t>();
+            const uint8_t* second_data = second.data_ptr<uint8_t>();
+            auto* output_data = output.data_ptr<uint8_t>();
+            add_func(first_data, second_data, output_data, first.numel());
+            break;
+        } break;
+        default:
+            throw std::runtime_error("Unsupported data type");
+    }
+
+    outputs.push_back(std::move(output));
 
     return outputs;
 }
