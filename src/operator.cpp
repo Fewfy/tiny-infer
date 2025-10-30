@@ -9,6 +9,85 @@
 
 namespace inference {
 
+// ==================== Broadcast Helper Functions ====================
+
+// Compute the broadcast shape of two tensors
+std::vector<int64_t> compute_broadcast_shape(const std::vector<int64_t>& shape1,
+                                             const std::vector<int64_t>& shape2) {
+    // Handle empty tensors
+    if (shape1.empty() && shape2.empty()) {
+        return {};
+    }
+    if (shape1.empty()) {
+        return shape2;
+    }
+    if (shape2.empty()) {
+        return shape1;
+    }
+
+    size_t max_dims = std::max(shape1.size(), shape2.size());
+    std::vector<int64_t> result(max_dims);
+
+    // Align dimensions from right to left
+    for (size_t i = 0; i < max_dims; ++i) {
+        int64_t dim1 = (i < shape1.size()) ? shape1[shape1.size() - 1 - i] : 1;
+        int64_t dim2 = (i < shape2.size()) ? shape2[shape2.size() - 1 - i] : 1;
+
+        // here we check if the dimensions are compatible for broadcasting
+        if (dim1 == dim2 || dim1 == 1 || dim2 == 1) {
+            result[max_dims - 1 - i] = std::max(dim1, dim2);
+        } else {
+            throw std::runtime_error("Incompatible shapes for broadcasting: [" +
+                                     std::to_string(dim1) + "] and [" + std::to_string(dim2) + "]");
+        }
+    }
+
+    return result;
+}
+
+// Convert linear index to multi-dimensional index
+std::vector<int64_t> linear_to_multi_index(int64_t linear_idx, const std::vector<int64_t>& shape) {
+    std::vector<int64_t> indices(shape.size());
+    for (int64_t i = static_cast<int64_t>(shape.size()) - 1; i >= 0; --i) {
+        indices[i] = linear_idx % shape[i];
+        linear_idx /= shape[i];
+    }
+    return indices;
+}
+
+// Convert multi-dimensional index to linear index
+int64_t multi_to_linear_index(const std::vector<int64_t>& indices,
+                              const std::vector<int64_t>& shape) {
+    int64_t linear_idx = 0;
+    int64_t stride = 1;
+    for (int64_t i = static_cast<int64_t>(shape.size()) - 1; i >= 0; --i) {
+        linear_idx += indices[i] * stride;
+        stride *= shape[i];
+    }
+    return linear_idx;
+}
+
+// Get the linear index in the original tensor given the broadcasted index
+int64_t get_broadcasted_index(int64_t output_idx, const std::vector<int64_t>& output_shape,
+                              const std::vector<int64_t>& input_shape) {
+    std::vector<int64_t> multi_idx = linear_to_multi_index(output_idx, output_shape);
+
+    // Adjust indices for broadcasting (dimension size 1 maps to index 0)
+    std::vector<int64_t> input_multi_idx(input_shape.size());
+    int64_t offset =
+        static_cast<int64_t>(output_shape.size()) - static_cast<int64_t>(input_shape.size());
+
+    for (size_t i = 0; i < input_shape.size(); ++i) {
+        if (input_shape[i] == 1) {
+            input_multi_idx[i] = 0;  // Broadcast dimension
+        } else {
+            input_multi_idx[i] = multi_idx[offset + i];
+        }
+    }
+
+    return multi_to_linear_index(input_multi_idx, input_shape);
+}
+
 // ==================== Conv2dOperator ====================
 std::vector<Tensor> Conv2dOperator::forward(const std::vector<Tensor>& inputs) {
     // TODO: Implement 2D convolution operation
@@ -95,61 +174,73 @@ std::vector<Tensor> MatMulOperator::forward(const std::vector<Tensor>& inputs) {
 
 // ==================== AddOperator ====================
 std::vector<Tensor> AddOperator::forward(const std::vector<Tensor>& inputs) {
-    // TODO: Implement element-wise addition (with broadcasting support)
+    // Implement element-wise addition with broadcasting support
     // inputs[0]: First input tensor
     // inputs[1]: Second input tensor
-    assert(inputs.size() == 2);
-    assert(inputs[0].shape() == inputs[1].shape());
-    assert(inputs[0].dtype() == inputs[1].dtype());
-    assert(inputs[0].ndim() == inputs[1].ndim());
+    if (inputs.size() != 2) {
+        throw std::runtime_error("AddOperator requires exactly 2 inputs");
+    }
 
-    Tensor first = inputs[0];
-    Tensor second = inputs[1];
+    const Tensor& first = inputs[0];
+    const Tensor& second = inputs[1];
+
+    // Check data type compatibility
+    if (first.dtype() != second.dtype()) {
+        throw std::runtime_error("AddOperator requires inputs with same data type");
+    }
+
+    // Compute broadcast shape
+    std::vector<int64_t> output_shape = compute_broadcast_shape(first.shape(), second.shape());
 
     std::vector<Tensor> outputs;
-    Tensor output(first.shape(), first.dtype());
+    Tensor output(output_shape, first.dtype());
 
-    auto add_func = []<typename T>(const T* first_data, const T* second_data, T* output_data,
-                                   int64_t numel) {
-        for (int64_t i = 0; i < numel; ++i) {
-            output_data[i] = first_data[i] + second_data[i];
+    // Broadcast addition function
+    auto broadcast_add_func = [&](auto* first_data, auto* second_data, auto* output_data) {
+        int64_t output_numel = output.numel();
+        for (int64_t i = 0; i < output_numel; ++i) {
+            int64_t first_idx = get_broadcasted_index(i, output_shape, first.shape());
+            int64_t second_idx = get_broadcasted_index(i, output_shape, second.shape());
+            output_data[i] = first_data[first_idx] + second_data[second_idx];
         }
     };
+
     switch (first.dtype()) {
         case DataType::FLOAT32: {
             const float* first_data = first.data_ptr<float>();
             const float* second_data = second.data_ptr<float>();
             auto* output_data = output.data_ptr<float>();
-            add_func(first_data, second_data, output_data, first.numel());
+            broadcast_add_func(first_data, second_data, output_data);
             break;
         }
         case DataType::FLOAT16: {
             const uint16_t* first_data = first.data_ptr<uint16_t>();
             const uint16_t* second_data = second.data_ptr<uint16_t>();
             auto* output_data = output.data_ptr<uint16_t>();
-            add_func(first_data, second_data, output_data, first.numel());
-        } break;
+            broadcast_add_func(first_data, second_data, output_data);
+            break;
+        }
         case DataType::INT32: {
             const int32_t* first_data = first.data_ptr<int32_t>();
             const int32_t* second_data = second.data_ptr<int32_t>();
             auto* output_data = output.data_ptr<int32_t>();
-            add_func(first_data, second_data, output_data, first.numel());
+            broadcast_add_func(first_data, second_data, output_data);
             break;
         }
         case DataType::INT8: {
             const int8_t* first_data = first.data_ptr<int8_t>();
             const int8_t* second_data = second.data_ptr<int8_t>();
             auto* output_data = output.data_ptr<int8_t>();
-            add_func(first_data, second_data, output_data, first.numel());
+            broadcast_add_func(first_data, second_data, output_data);
             break;
         }
         case DataType::UINT8: {
             const uint8_t* first_data = first.data_ptr<uint8_t>();
             const uint8_t* second_data = second.data_ptr<uint8_t>();
             auto* output_data = output.data_ptr<uint8_t>();
-            add_func(first_data, second_data, output_data, first.numel());
+            broadcast_add_func(first_data, second_data, output_data);
             break;
-        } break;
+        }
         default:
             throw std::runtime_error("Unsupported data type");
     }
