@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include <stdexcept>
 
 #include "inference/tensor.h"
 
@@ -159,14 +160,78 @@ std::vector<Tensor> SoftmaxOperator::forward(const std::vector<Tensor>& inputs) 
     return outputs;
 }
 
+template <typename T>
+void matmul_impl(const Tensor& tensor_1, const Tensor& tensor_2, Tensor& result) {
+    int m = tensor_1.shape()[0];
+    int n = tensor_1.shape()[1];
+    int p = tensor_2.shape()[1];
+
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < p; j++) {
+            T sum = 0;
+            for (int k = 0; k < n; k++) {
+                sum += tensor_1.data_ptr<T>()[i * n + k] * tensor_2.data_ptr<T>()[k * p + j];
+            }
+            result.data_ptr<T>()[i * p + j] = sum;
+        }
+    }
+}
+
 // ==================== MatMulOperator ====================
 std::vector<Tensor> MatMulOperator::forward(const std::vector<Tensor>& inputs) {
     // TODO: Implement matrix multiplication
     // inputs[0]: Left matrix [M, K]
     // inputs[1]: Right matrix [K, N]
     // output: Result matrix [M, N]
+    if (inputs.size() != 2) {
+        throw std::runtime_error("MatMulOperator requires inputs with same data type");
+    }
 
+    const Tensor& tensor_1 = inputs[0];
+    const Tensor& tensor_2 = inputs[1];
+
+    if (tensor_1.dtype() != tensor_2.dtype()) {
+        throw std::runtime_error("MatMulOperator: inputs must have same data type");
+    }
+
+    int row_1 = tensor_1.shape()[0];
+    int col_1 = tensor_1.shape()[1];
+
+    int row_2 = tensor_2.shape()[0];
+    int col_2 = tensor_2.shape()[1];
+
+    if (col_1 != row_2) {
+        throw std::runtime_error("MatMulOperator: inner dimensions do not match");
+    }
+
+    Tensor out({row_1, col_2}, tensor_1.dtype());
+    switch (tensor_1.dtype()) {
+        case DataType::FLOAT16: {
+            matmul_impl<uint16_t>(tensor_1, tensor_2, out);
+            break;
+        }
+        case DataType::FLOAT32: {
+            matmul_impl<float>(tensor_1, tensor_2, out);
+            break;
+        }
+        case DataType::INT32: {
+            matmul_impl<int32_t>(tensor_1, tensor_2, out);
+            break;
+        }
+        case DataType::INT8: {
+            matmul_impl<int8_t>(tensor_1, tensor_2, out);
+            break;
+        }
+        case DataType::UINT8: {
+            matmul_impl<uint8_t>(tensor_1, tensor_2, out);
+            break;
+        }
+        default: {
+            throw std::runtime_error("MatMulOperator: unsupported data type");
+        }
+    }
     std::vector<Tensor> outputs;
+    outputs.emplace_back(std::move(out));
     // TODO: Create output tensor and perform matrix multiplication
 
     return outputs;
