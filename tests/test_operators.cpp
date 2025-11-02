@@ -336,7 +336,6 @@ void test_add_error_cases() {
 void test_matmul() {
     std::cout << "Testing MatMul operator..." << std::endl;
 
-    // 测试1：最基本的 2x3 * 3x2 = 2x2
     inference::Tensor a({2, 3}, inference::DataType::FLOAT32);
     inference::Tensor b({3, 2}, inference::DataType::FLOAT32);
     float a_data[] = {1, 2, 3, 4, 5, 6};
@@ -352,14 +351,13 @@ void test_matmul() {
     const auto& out = outputs[0];
     assert(out.shape() == std::vector<int64_t>({2, 2}));
     const float* out_data = out.data_ptr<float>();
-    // 手算: [1*7+2*9+3*11, 1*8+2*10+3*12]
+    // [1*7+2*9+3*11, 1*8+2*10+3*12]
     //      [4*7+5*9+6*11, ...]
     assert(std::abs(out_data[0] - (1 * 7 + 2 * 9 + 3 * 11)) < 1e-4);
     assert(std::abs(out_data[1] - (1 * 8 + 2 * 10 + 3 * 12)) < 1e-4);
     assert(std::abs(out_data[2] - (4 * 7 + 5 * 9 + 6 * 11)) < 1e-4);
     assert(std::abs(out_data[3] - (4 * 8 + 5 * 10 + 6 * 12)) < 1e-4);
 
-    // 测试2：单位矩阵乘法
     inference::Tensor id_matrix({2, 2}, inference::DataType::FLOAT32);
     float id_data[] = {1, 0, 0, 1};
     id_matrix.copyFrom(id_data);
@@ -367,7 +365,6 @@ void test_matmul() {
     const float* id_res = outputs2[0].data_ptr<float>();
     assert(id_res[0] == 1 && id_res[1] == 0 && id_res[2] == 0 && id_res[3] == 1);
 
-    // 测试3：特殊情况 - 全零矩阵
     inference::Tensor zero_a({2, 3}, inference::DataType::FLOAT32);
     inference::Tensor zero_b({3, 4}, inference::DataType::FLOAT32);
     zero_a.fill<float>(0);
